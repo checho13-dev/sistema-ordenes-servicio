@@ -1,58 +1,101 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistema de órdenes de servicio
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicación web para gestionar clientes, equipos y órdenes de servicio técnico. Proyecto personal de Sergio Esteban Bello Gómez, inspirado en su experiencia de soporte en Ubaté. La demostración utiliza datos ficticios.
 
-## About Laravel
+## Recorrido de una reparación
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. Inicia sesión y registra un cliente con sus datos de contacto.
+2. Asocia un equipo al cliente mediante su tipo, marca, modelo y número de serie.
+3. Abre una orden con la falla reportada y la fecha de ingreso. Durante la atención puedes actualizar el diagnóstico, el costo estimado en pesos colombianos, el estado y la fecha de entrega.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Los tres módulos permiten listar, buscar, crear, consultar, editar y eliminar registros. Las listas conservan la búsqueda al cambiar de página. Cada eliminación solicita confirmación. Si existen equipos asociados al cliente u órdenes asociadas al equipo, se conserva el registro y se informa el motivo.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tecnologías
 
-## Learning Laravel
+| Componente | Versión |
+| --- | --- |
+| PHP | 8.3 o posterior dentro de la rama 8.x; desarrollo con 8.4 |
+| Laravel y Blade | 13.43.0 |
+| MySQL | 8.4 LTS |
+| Bootstrap | 5.3.8 |
+| Vite | 7.3.8 |
+| PHPUnit | 12.5.44 |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Instalación local
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Requisitos: Git, PHP con PDO MySQL, PDO SQLite (pruebas locales), Mbstring y XML, Composer 2, MySQL 8.4 y Node.js 22.12+ o 24 con npm.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+1. Clona el proyecto e instala las dependencias de PHP.
 
-## Agentic Development
+   ```bash
+   git clone https://github.com/checho13-dev/sistema-ordenes-servicio.git
+   cd sistema-ordenes-servicio
+   composer install
+   ```
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+2. Crea la configuración local y genera la clave de la aplicación.
+
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+   En PowerShell puedes copiar el archivo con `Copy-Item .env.example .env`.
+
+3. Crea la base desde tu cliente MySQL y otorga a tu usuario local permisos sobre ella.
+
+   ```sql
+   CREATE DATABASE ordenes_servicio CHARACTER SET utf8mb4;
+   ```
+
+   En `.env`, establece `DB_CONNECTION=mysql`, `DB_HOST=127.0.0.1`, `DB_PORT=3306` y `DB_DATABASE=ordenes_servicio`. Completa `DB_USERNAME` y `DB_PASSWORD` con los datos de tu instalación.
+
+4. Ejecuta las migraciones, carga los ejemplos y crea tu cuenta de operador. El comando solicita la contraseña sin mostrarla.
+
+   ```bash
+   php artisan migrate --seed
+   php artisan operador:crear
+   ```
+
+5. Compila los estilos y el JavaScript e inicia la aplicación.
+
+   ```bash
+   npm install
+   npm run build
+   php artisan serve
+   ```
+
+   Abre <http://127.0.0.1:8000> e ingresa con la cuenta que creaste.
+
+## Pruebas
+
+Una vez completada la instalación, ejecuta:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan test
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+La suite local usa SQLite en memoria. Verifica el ciclo completo de los tres módulos, el acceso autenticado, el inicio y cierre de sesión, las relaciones que impiden eliminar registros, la validación de órdenes y la paginación con búsqueda. El flujo de [integración continua](.github/workflows/pruebas.yml) ejecuta las pruebas con una base MySQL exclusiva para el trabajo de CI.
 
-## Contributing
+## Decisiones técnicas
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Una orden pertenece al equipo.** El cliente se obtiene a través del equipo. Así una orden no puede apuntar a un cliente distinto del propietario registrado.
+2. **La base protege el historial.** Las claves foráneas restringen las eliminaciones aunque coincidan dos solicitudes. Los controladores traducen la restricción en un mensaje para el operador.
+3. **Un enum define los cinco estados.** El formulario y la validación comparten `EstadoOrden`: recibido, en diagnóstico, en reparación, listo y entregado.
+4. **El diagnóstico puede completarse después.** Falla y fecha de ingreso se exigen al abrir la orden. El costo usa un decimal de dos posiciones y la fecha de entrega, cuando se informa, debe ser igual o posterior al ingreso.
+5. **Sesiones de Laravel y operadores locales.** El formulario usa Auth, protección CSRF y limitación de intentos. El alta de operadores es interactiva y el seeder solo crea datos de demostración.
 
-## Code of Conduct
+## Estructura del proyecto
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Ruta | Responsabilidad |
+| --- | --- |
+| `routes/web.php` y `routes/console.php` | Rutas del panel y alta de operadores |
+| `app/Http/Controllers/` y `app/Http/Requests/` | Acciones CRUD, autenticación y validación |
+| `app/Models/` y `app/Enums/` | Relaciones de Eloquent y estados de las órdenes |
+| `database/` | Migraciones, factories y seeder |
+| `resources/views/` | Formularios, listados, fichas y plantilla Blade en español |
+| `tests/Feature/GestionTest.php` | Pruebas de los flujos HTTP |
 
-## Security Vulnerabilities
+## Capturas de pantalla
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Los espacios para las vistas de clientes, equipo y orden están en [docs/screenshots/](docs/screenshots/README.md).
