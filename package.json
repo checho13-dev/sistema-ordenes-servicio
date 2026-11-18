@@ -1,0 +1,8 @@
+{
+  "name": "sistema-ordenes-servicio",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite", "build": "vite build" },
+  "dependencies": { "bootstrap": "5.3.8" },
+  "devDependencies": { "vite": "^7.0.0", "laravel-vite-plugin": "^2.0.0" }
+}
