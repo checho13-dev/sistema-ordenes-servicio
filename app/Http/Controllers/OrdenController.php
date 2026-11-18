@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\OrdenRequest;
 use App\Models\Orden;
 use App\Models\Equipo;
-use App\Enums\EstadoOrden;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
