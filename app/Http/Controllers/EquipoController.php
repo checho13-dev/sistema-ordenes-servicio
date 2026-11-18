@@ -67,7 +67,7 @@ class EquipoController extends Controller
                 throw $exception;
             }
 
-            return back()->with('error', 'No se puede eliminar el registro porque tiene ordenes asociados.');
+            return back()->with('error', 'No se puede eliminar el registro porque tiene órdenes asociadas.');
         }
 
         return redirect()->route('equipos.index')->with('success', 'Registro eliminado.');
