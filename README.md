@@ -115,4 +115,16 @@ Cada orden identifica un equipo y almacena el diagnóstico, el costo y el estado
 
 ## Capturas de pantalla
 
-Los espacios para las vistas de clientes, equipo y orden están en [docs/screenshots/](docs/screenshots/README.md).
+### Búsqueda de clientes
+
+![Resultados de la búsqueda de clientes con identificadores ficticios](docs/screenshots/clientes.png)
+
+### Ficha del equipo
+
+![Equipo de muestra y cliente asociado](docs/screenshots/equipo.png)
+
+### Detalle de la orden
+
+![Orden de demostración con diagnóstico, costo, fechas y estado](docs/screenshots/orden.png)
+
+[Origen y reproducción de las capturas](docs/screenshots/README.md)
