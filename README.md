@@ -1,5 +1,7 @@
 # Sistema de órdenes de servicio
 
+[![Pruebas](https://github.com/checho13-dev/sistema-ordenes-servicio/actions/workflows/pruebas.yml/badge.svg)](https://github.com/checho13-dev/sistema-ordenes-servicio/actions/workflows/pruebas.yml)
+
 Aplicación web para gestionar clientes, equipos y órdenes de servicio técnico. Proyecto personal de Sergio Esteban Bello Gómez, inspirado en su experiencia de soporte en Ubaté. La demostración utiliza datos ficticios.
 
 ## Recorrido de una reparación
@@ -77,10 +79,25 @@ php artisan test
 
 La suite local usa SQLite en memoria. Verifica el ciclo completo de los tres módulos, el acceso autenticado, el inicio y cierre de sesión, las relaciones que impiden eliminar registros, la validación de órdenes y la paginación con búsqueda. El flujo de [integración continua](.github/workflows/pruebas.yml) ejecuta las pruebas con una base MySQL exclusiva para el trabajo de CI.
 
+## Modelo de datos
+
+| Registro padre | Registro dependiente | Relación | Al intentar eliminar el padre |
+| --- | --- | --- | --- |
+| Cliente | Equipo | Uno a muchos mediante `equipos.cliente_id` | Si conserva equipos, se rechaza la eliminación y se informa el motivo. |
+| Equipo | Orden | Uno a muchos mediante `ordenes.equipo_id` | Si conserva órdenes, se rechaza la eliminación y se informa el motivo. |
+
+Cada orden identifica un equipo y almacena el diagnóstico, el costo y el estado vigente. Consulta las [migraciones](database/migrations/) y los [modelos de Eloquent](app/Models/).
+
+## Limitaciones y próximos pasos
+
+- El sistema guarda el estado vigente de la orden. Incorporar una bitácora permitiría consultar quién cambió cada estado y cuándo.
+- Todos los operadores autenticados pueden modificar registros. Los permisos por rol permitirían separar recepción, diagnóstico y administración.
+- El enum valida los cinco estados admitidos. Una regla de transición permitiría, por ejemplo, exigir que una orden esté lista antes de marcarla como entregada.
+
 ## Decisiones técnicas
 
 1. **Una orden pertenece al equipo.** El cliente se obtiene a través del equipo. Así una orden no puede apuntar a un cliente distinto del propietario registrado.
-2. **La base protege el historial.** Las claves foráneas restringen las eliminaciones aunque coincidan dos solicitudes. Los controladores traducen la restricción en un mensaje para el operador.
+2. **La base protege los registros relacionados.** Las claves foráneas restringen las eliminaciones aunque coincidan dos solicitudes. Los controladores traducen la restricción en un mensaje para el operador.
 3. **Un enum define los cinco estados.** El formulario y la validación comparten `EstadoOrden`: recibido, en diagnóstico, en reparación, listo y entregado.
 4. **El diagnóstico puede completarse después.** Falla y fecha de ingreso se exigen al abrir la orden. El costo usa un decimal de dos posiciones y la fecha de entrega, cuando se informa, debe ser igual o posterior al ingreso.
 5. **Sesiones de Laravel y operadores locales.** El formulario usa Auth, protección CSRF y limitación de intentos. El alta de operadores es interactiva y el seeder solo crea datos de demostración.
