@@ -71,6 +71,8 @@ Requisitos: Git, PHP con PDO MySQL, PDO SQLite (pruebas locales), Mbstring y XML
 
 ## Pruebas
 
+La [ejecución del 18 de noviembre de 2026](https://github.com/checho13-dev/sistema-ordenes-servicio/actions/runs/44398396551) completó 8 pruebas de PHPUnit con 105 aserciones en MySQL.
+
 Una vez completada la instalación, ejecuta:
 
 ```bash
